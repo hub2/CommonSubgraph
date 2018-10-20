@@ -12,13 +12,13 @@ func Export(g *Builder, out io.Writer) error {
 		return errors.New("cannot export nil graph")
 	}
 
-	_, err := out.Write([]byte(fmt.Sprintf("%d\n", len(g.adjMatrix))))
+	_, err := out.Write([]byte(fmt.Sprintf("%d\n", len(g.AdjMatrix))))
 	if err != nil {
 		return fmt.Errorf("could not write to output: %s", err.Error())
 	}
 
-	for i := range g.adjMatrix {
-		row := g.adjMatrix[i]
+	for i := range g.AdjMatrix {
+		row := g.AdjMatrix[i]
 		for j := range row {
 			cell := strconv.Itoa(row[j])
 			if j != len(row)-1 {

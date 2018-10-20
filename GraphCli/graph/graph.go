@@ -3,7 +3,7 @@ package graph
 import "errors"
 
 type Builder struct {
-	adjMatrix [][]int
+	AdjMatrix [][]int
 }
 
 func New(v int) (*Builder, error) {
@@ -25,11 +25,11 @@ func (b *Builder) AddEdge(from, to int) error {
 	if !b.vertexIndexValid(to) {
 		return errors.New("to vertex invalid")
 	}
-	b.adjMatrix[from][to] = 1
-	b.adjMatrix[to][from] = 1
+	b.AdjMatrix[from][to] = 1
+	b.AdjMatrix[to][from] = 1
 	return nil
 }
 
 func (b *Builder) vertexIndexValid(ind int) bool {
-	return ind >= 0 && ind < len(b.adjMatrix)
+	return ind >= 0 && ind < len(b.AdjMatrix)
 }

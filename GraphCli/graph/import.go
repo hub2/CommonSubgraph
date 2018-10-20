@@ -32,7 +32,9 @@ func Import(r io.Reader) (*Builder, error) {
 	for i := 0; i < graphSize; i++ {
 		line, err := rd.ReadBytes('\n')
 		if err != nil {
-			return nil, fmt.Errorf("could not get matrix line %d : %v", i, err)
+			if !(i == graphSize-1 && err == io.EOF) { // in case there is no newline in the last line
+				return nil, fmt.Errorf("could not get matrix line %d : %v", i, err)
+			}
 		}
 
 		values := strings.Split(string(line[:len(line)-1]), valuesDelim)
