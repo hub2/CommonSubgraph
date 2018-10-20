@@ -34,18 +34,25 @@ var showCmd = &cobra.Command{
 
 		imported, err := graph.Import(f)
 		if err != nil {
-			log.Fatalf("Could not import graph: %v", err)
+			log.Print("Could not import graph: %v", err)
+			return
 		}
 
 		graphviz := getGraphvizFromGraph(imported)
 
 		tmpFile, err := ioutil.TempFile(".", "")
 		if err != nil {
-			log.Fatalf("Could not create tmp file for dot file: %v", err)
+			log.Print("Could not create tmp file for dot file: %v", err)
+			return
 		}
-		defer tmpFile.Close()
 		defer os.Remove(tmpFile.Name())
-		ioutil.WriteFile(tmpFile.Name(), []byte(graphviz.String()), 0666)
+		defer tmpFile.Close()
+
+		err = ioutil.WriteFile(tmpFile.Name(), []byte(graphviz.String()), 0666)
+		if err != nil {
+			log.Printf("Could not write to dot file: %v", err)
+			return
+		}
 
 		xdotCmd := exec.Command("xdot", tmpFile.Name())
 		if err = xdotCmd.Run(); err != nil {
@@ -77,5 +84,5 @@ func getGraphvizFromGraph(g *graph.Builder) *gographviz.Graph {
 }
 
 func nodeIDFromIndex(idx int) string {
-	return "node_" + strconv.Itoa(idx)
+	return strconv.Itoa(idx)
 }
