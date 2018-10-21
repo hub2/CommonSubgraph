@@ -1,4 +1,6 @@
 #include "graph.h"
+#include "math.h"
+#include "algorithm.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,7 +17,7 @@ char* get_file_content(char* filename) {
     }
 
     fseek(f, 0, SEEK_END);
-    length = ftell(f); 
+    length = ftell(f);  
     fseek(f, 0, SEEK_SET);
     buffer = malloc(length);
     if(!buffer) {
@@ -28,12 +30,20 @@ char* get_file_content(char* filename) {
 }
 
 int main(int argc, char *argv[]) {
-    // if(argc < 5) {
-    //     printf
-    // }
+    char* dump1 = get_file_content("rand9");
+    char* dump2 = get_file_content("rand10");
+    graph* g1 = create_graph_from_dump(dump1);
+    free(dump1);
+    graph* g2 = create_graph_from_dump(dump2);
+    free(dump2);
+    graph* g = get_exact_best_subgraph(g1,g2,0);
 
-    char* dump = get_file_content(argv[1]);
-    graph* g = create_graph_from_dump(dump);
-    dump_graph(g);
-    printf("%d\n", g->size);
+    FILE *f = fopen("out", "w");   
+    if (f == NULL) {
+        return 1;
+    }
+    
+    dump_graph(f,g);
+    fclose(f);
+    return 0;
 } 

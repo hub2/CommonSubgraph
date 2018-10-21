@@ -26,6 +26,7 @@ graph* init_graph(int size) {
             printf("malloc returned err\n");
             exit(1);
         }
+        memset(out->data[i],0,sizeof(int) * size);
     }
 
     return out;
@@ -43,6 +44,8 @@ int dump_graph(FILE* file, graph* g) {
         }
         fprintf(file,"\n");
     }
+    printf("dumped\n");
+    return 0;
 }
 
 graph* create_graph_from_dump(char* dump) {
@@ -53,7 +56,7 @@ graph* create_graph_from_dump(char* dump) {
     long tmp;
     graph* out;
 
-    while (line = strsep(&dump, "\n")) {
+    while ((line = strsep(&dump, "\n"))) {
         next = line; //strsep needs it not to be null
         if(got_size) {
             tokens_count = 0;
@@ -101,4 +104,20 @@ int add_edge(int from, int to, graph* g) {
     g->data[from][to] = 1;
     g->data[to][from] = 1;
     return 0;
+}
+
+
+graph* from_subset(graph* g,int* subset,int subset_size) {
+    graph* out = init_graph(subset_size);
+    int i,j;
+    for(i = 0;i<subset_size;i++) {
+        for(j = i+1;j<subset_size;j++) {
+            if(i==j) continue;
+            if(g->data[subset[i]][subset[j]]) {
+                add_edge(i,j,out);
+            }
+        }
+    }
+
+    return out;
 }
