@@ -313,7 +313,7 @@ graph *get_approx_subgraph(graph *g1, graph *g2)
                 int all_edges_match = 1;
                 for (register int i = 0; i < g1->size; i++)
                 {
-                    if (!g1_subgraph_idx_lookup[i])
+                    if (!g1_subgraph_idx_lookup[i]) // i is not in subgraph of g1
                         continue;
                     if (g1->data[g1_candidate->idx][i])
                     {
@@ -330,9 +330,9 @@ graph *get_approx_subgraph(graph *g1, graph *g2)
                 {
                     for (register int i = 0; i < g2->size; i++)
                     {
-                        if (!g2_subgraph_idx_lookup[i])
+                        if (!g2_subgraph_idx_lookup[i]) // i is not in subgraph of g2
                             continue;
-                        if (g2->data[g2_candidate->idx][i])
+                        if (g2->data[g2_candidate->idx][i]) 
                         {
                             int mapped_i = g1_sub_indices[g2_subgraph_idx_lookup[i]];
                             if (!g1->data[g1_candidate->idx][mapped_i])
