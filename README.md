@@ -22,7 +22,5 @@ implementacja algorytmów
 
 make build tworzy nam binarkę
 
-odpalamy ją: 
-
-./commonSubgraph <p1> <p2> //p1 i p2 to ścieżki do dumpów grafów zgodnych z konwencją tworzoną przez GraphCli
+./commonSubgraph $p1 $p2 //p1 i p2 to ścieżki do dumpów grafów zgodnych z konwencją tworzoną przez GraphCli
 
