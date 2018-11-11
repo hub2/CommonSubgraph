@@ -1,10 +1,11 @@
 CC=gcc
+OUT=commonSubgraph
 
 build:
-	$(CC) -g -Wall *.c
+	$(CC) -g -Wall *.c -o $(OUT)
 
-run:
-	$(CC) -g -Wall *.c  && ./a.out
+run: build
+	./$(OUT) && rm $(OUT)
 
-debug:
-	$(CC) -g -Wall *.c  && gdb a.out
+debug: build
+	( gdb $(OUT) && rm $(OUT) ) || rm $(OUT)

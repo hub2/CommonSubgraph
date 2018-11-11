@@ -1,7 +1,6 @@
 #include "math.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 int ***get_subsets(int n, int **counts)
@@ -10,13 +9,11 @@ int ***get_subsets(int n, int **counts)
     long bucket_size;
     int ***res;
     int *current_combination;
-    printf("getting subsets of numbers from 0 to %d\n", n);
 
     res = malloc(sizeof(int **) * (n + 2));
     for (i = 0; i < n + 2; i++)
     {
         bucket_size = get_bucket_size((n + 1), i);
-        printf("bucket sieze for i %d: %ld\n", i, bucket_size);
         res[i] = malloc(sizeof(int *) * bucket_size);
         for (j = 0; j < bucket_size; j++)
         {

@@ -30,15 +30,47 @@ char *get_file_content(char *filename)
     return buffer;
 }
 
+void print_mapping(iso_result *res)
+{
+    printf("mapping: \n");
+    for (int i = 0; i < res->size; i++)
+    {
+        printf("%d", res->g1_indices[i]);
+        if (i + 1 != res->size)
+        {
+            printf(",");
+        }
+    }
+    puts("");
+
+    for (int i = 0; i < res->size; i++)
+    {
+        printf("%d", res->g2_indices[i]);
+        if (i + 1 != res->size)
+        {
+            printf(",");
+        }
+    }
+    puts("");
+}
+
 int main(int argc, char *argv[])
 {
-    char *dump1 = get_file_content("rand9");
-    char *dump2 = get_file_content("rand10");
+    if (argc < 3)
+    {
+        printf("provide 2 paths for graph dumps\n");
+        exit(1);
+    }
+
+    char *dump1 = get_file_content(argv[1]);
+    char *dump2 = get_file_content(argv[2]);
     graph *g1 = create_graph_from_dump(dump1);
     free(dump1);
     graph *g2 = create_graph_from_dump(dump2);
     free(dump2);
-    graph *g = get_exact_best_subgraph(g1, g2, 0);
+
+    // iso_result *res = get_exact_best_subgraph(g1, g2, 0);
+    iso_result *res = get_approx_subgraph(g1, g2);
 
     FILE *f = fopen("out", "w");
     if (f == NULL)
@@ -46,7 +78,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    dump_graph(f, g);
+    print_mapping(res);
+    dump_graph(f, res->out_graph);
     fclose(f);
     return 0;
 }

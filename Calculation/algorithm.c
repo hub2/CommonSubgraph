@@ -2,9 +2,17 @@
 #include "math.h"
 
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-graph *get_exact_best_subgraph(graph *g1, graph *g2, int count_edges)
+int isomorphic_in_any_perm(graph *g1, graph *g2, int *subset1, int *subset2, int subset_size);
+int isomorphic_in_any_perm_rec(graph *g1, graph *g2, int *subset1, int *subset2, int subset_size, int recursion_depth);
+int isomorphic(graph *g1, graph *g2, int *subset1, int *subset2, int subset_size);
+int subset_is_connected(graph *g, int *subset, int subset_size, int *edge_count);
+void fill_with_neighbours(graph *g, int idx, stack_node **stack, int *already_added);
+void remove_value(stack_node **stack, int idx);
+
+iso_result *get_exact_best_subgraph(graph *g1, graph *g2, int count_edges)
 {
     int min_vertices = g1->size < g2->size ? g1->size : g2->size;
     int best_graph_size = 0, current_size, max_combination_size;
@@ -15,6 +23,7 @@ graph *get_exact_best_subgraph(graph *g1, graph *g2, int count_edges)
     int ***combinations_g1 = get_subsets(g1->size - 1, subsets_count_g1);
     int ***combinations_g2 = get_subsets(g2->size - 1, subsets_count_g2);
     int i, j, k;
+    iso_result *result = malloc(sizeof(iso_result *));
 
     // combinations_g1[2] -> [
     //     [1,2],[2,3],[3,1]
@@ -38,16 +47,13 @@ graph *get_exact_best_subgraph(graph *g1, graph *g2, int count_edges)
                     {
                         current_size += *edge_count;
                     }
-                    if (i == 3)
-                    {
-                        printf("cos tam mam i 3 to mam\n");
-                    }
 
                     if (current_size > best_graph_size)
                     { // need to check only if new graph is bigger
                         if (isomorphic_in_any_perm(g1, g2, combinations_g1[i][j], combinations_g2[i][k], i))
                         {
-                            printf("found iso graph ! size: %d, edge_count: %d\n", i, *edge_count);
+                            result->g1_indices = combinations_g1[i][j];
+                            result->g2_indices = combinations_g2[i][k];
                             max_combination_size = i;
                             max_combination = combinations_g1[i][j];
                             best_graph_size = current_size;
@@ -66,7 +72,9 @@ graph *get_exact_best_subgraph(graph *g1, graph *g2, int count_edges)
     free(subsets_count_g2);
 
 GraphFound:
-    return from_subset(g1, max_combination, max_combination_size);
+    result->out_graph = from_subset(g1, max_combination, max_combination_size);
+    result->size = max_combination_size;
+    return result;
 }
 
 void swap(int *str, int i, int j)
@@ -111,8 +119,6 @@ int isomorphic_in_any_perm_rec(graph *g1, graph *g2, int *subset1, int *subset2,
     return 0;
 }
 
-//subs1 [0,6,7]
-//subs2 [0,1,2]
 int isomorphic(graph *g1, graph *g2, int *subset1, int *subset2, int subset_size)
 {
     int i, j, mapped_i, mapped_j;
@@ -236,18 +242,24 @@ void add_unique(int value, stack_node **stack)
     }
 
     new_node = malloc(sizeof(stack_node));
+    if (!new_node)
+    {
+        printf("err malloc\n");
+        exit(1);
+    }
+    memset(new_node, 0, sizeof(stack_node));
     new_node->idx = value;
     new_node->next = *stack;
     *stack = new_node;
     return;
 }
 
-void fill_with_neighbours(graph *g, int idx, stack_node **stack)
+void fill_with_neighbours(graph *g, int idx, stack_node **stack, int *already_added)
 {
     int j;
     for (j = 0; j < g->size; j++)
     {
-        if (g->data[j][idx])
+        if (g->data[j][idx] && (already_added[j] == -1))
         {
             add_unique(j, stack);
         }
@@ -262,7 +274,8 @@ void remove_value(stack_node **stack, int idx)
     {
         if (current->idx == idx)
         {
-            if(current == *stack) {
+            if (current == *stack)
+            {
                 *stack = current->next;
                 return;
             }
@@ -274,7 +287,7 @@ void remove_value(stack_node **stack, int idx)
     }
 }
 
-graph *get_approx_subgraph(graph *g1, graph *g2)
+iso_result *get_approx_subgraph(graph *g1, graph *g2)
 {
     stack_node *g1_candidates = NULL;
     stack_node *g2_candidates = NULL;
@@ -283,22 +296,26 @@ graph *get_approx_subgraph(graph *g1, graph *g2)
     memset(g1_sub_indices, -1, sizeof(int) * g1->size);
     memset(g2_sub_indices, -1, sizeof(int) * g2->size);
 
-    //These lists are used to check fast if given idx was lookup to subgraph. 
+    //These lists are used to check fast if given idx added to subgraph.
     //if(g1_subgraph_idx_lookup[i]) -> i-th vertex from g1 is in subgraph_g1 at index of value in array
     int *g1_subgraph_idx_lookup = malloc(sizeof(int) * g1->size);
     int *g2_subgraph_idx_lookup = malloc(sizeof(int) * g2->size);
-    memset(g1_sub_indices, 0, sizeof(int) * g1->size);
-    memset(g2_sub_indices, 0, sizeof(int) * g2->size);
+    memset(g1_subgraph_idx_lookup, -1, sizeof(int) * g1->size);
+    memset(g2_subgraph_idx_lookup, -1, sizeof(int) * g2->size);
+
+    iso_result *result = malloc(sizeof(iso_result *));
+    result->g1_indices = g1_sub_indices;
+    result->g2_indices = g2_sub_indices;
 
     int vertices = 1;
 
     g1_sub_indices[0] = 0;
-    g1_subgraph_idx_lookup[0] = 1;
+    g1_subgraph_idx_lookup[0] = 0;
     g2_sub_indices[0] = 0;
-    g2_subgraph_idx_lookup[0] = 1;
+    g2_subgraph_idx_lookup[0] = 0;
 
-    fill_with_neighbours(g1, 0, &g1_candidates);
-    fill_with_neighbours(g2, 0, &g2_candidates);
+    fill_with_neighbours(g1, 0, &g1_candidates, g1_subgraph_idx_lookup);
+    fill_with_neighbours(g2, 0, &g2_candidates, g2_subgraph_idx_lookup);
 
     int vertex_found = 1;
     while (vertex_found)
@@ -313,7 +330,7 @@ graph *get_approx_subgraph(graph *g1, graph *g2)
                 int all_edges_match = 1;
                 for (register int i = 0; i < g1->size; i++)
                 {
-                    if (!g1_subgraph_idx_lookup[i]) // i is not in subgraph of g1
+                    if (g1_subgraph_idx_lookup[i] == -1) // i is not in subgraph of g1
                         continue;
                     if (g1->data[g1_candidate->idx][i])
                     {
@@ -330,9 +347,9 @@ graph *get_approx_subgraph(graph *g1, graph *g2)
                 {
                     for (register int i = 0; i < g2->size; i++)
                     {
-                        if (!g2_subgraph_idx_lookup[i]) // i is not in subgraph of g2
+                        if (g2_subgraph_idx_lookup[i] == -1) // i is not in subgraph of g2
                             continue;
-                        if (g2->data[g2_candidate->idx][i]) 
+                        if (g2->data[g2_candidate->idx][i])
                         {
                             int mapped_i = g1_sub_indices[g2_subgraph_idx_lookup[i]];
                             if (!g1->data[g1_candidate->idx][mapped_i])
@@ -346,16 +363,18 @@ graph *get_approx_subgraph(graph *g1, graph *g2)
 
                 if (all_edges_match)
                 {
-                    fill_with_neighbours(g1, g1_candidate->idx, &g1_candidates);
-                    remove_value(&g1_candidates, g1_candidate->idx);
+
                     g1_sub_indices[vertices] = g1_candidate->idx;
-                    free(g1_candidate);
+                    g1_subgraph_idx_lookup[g1_candidate->idx] = vertices;
+                    fill_with_neighbours(g1, g1_candidate->idx, &g1_candidates, g1_subgraph_idx_lookup);
+                    remove_value(&g1_candidates, g1_candidate->idx);
+                    // free(g1_candidate); szkoda czasu na takie głupoty
 
-                    fill_with_neighbours(g2, g2_candidate->idx, &g2_candidates);
-                    remove_value(&g2_candidates, g2_candidate->idx);
                     g2_sub_indices[vertices] = g2_candidate->idx;
-                    free(g2_candidate);
-
+                    g2_subgraph_idx_lookup[g2_candidate->idx] = vertices;
+                    fill_with_neighbours(g2, g2_candidate->idx, &g2_candidates, g2_subgraph_idx_lookup);
+                    remove_value(&g2_candidates, g2_candidate->idx);
+                    // free(g2_candidate); szkoda czasu na takie głupoty
                     vertices++;
                     vertex_found = 1;
                 }
@@ -372,5 +391,7 @@ graph *get_approx_subgraph(graph *g1, graph *g2)
 
     free(g1_subgraph_idx_lookup);
     free(g2_subgraph_idx_lookup);
-    return from_subset(g1, g1_sub_indices, vertices);
+    result->out_graph = from_subset(g1, g1_sub_indices, vertices);
+    result->size = vertices;
+    return result;
 }
