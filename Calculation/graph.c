@@ -40,7 +40,6 @@ graph *init_graph(int size)
 int dump_graph(FILE *file, graph *g)
 {
     int i, j;
-    fprintf(file, "%d\n", g->size);
     for (i = 0; i < g->size; i++)
     {
         for (j = 0; j < g->size; j++)
@@ -53,7 +52,6 @@ int dump_graph(FILE *file, graph *g)
         }
         fprintf(file, "\n");
     }
-    printf("dumped\n");
     return 0;
 }
 
@@ -85,48 +83,45 @@ graph *create_graph_from_dump(char *dump)
     int got_size = 0, tokens_count, line_number = 0;
     long tmp;
     graph *out;
+    int i;
 
     while ((line = mystrsep(&dump, "\n")))
     {
         next = line; //strsep needs it not to be null
-        if (got_size)
+        if (!got_size)
         {
-            tokens_count = 0;
-            while (tokens_count < out->size)
-            {
-                token = mystrsep(&line, ",");
-                tmp = strtol(token, &next, 10);
-                if (next == token)
-                { // no chars converted
-                    printf("bad value for line_number=%d, tokens_count=%d\n", line_number, tokens_count);
-                    exit(1);
-                }
-                if (tmp)
-                {
-                    out->data[line_number][tokens_count] = 1;
-                }
-                else
-                {
-                    out->data[line_number][tokens_count] = 0;
-                }
-                tokens_count++;
-            }
-            line_number++;
-            if (line_number == out->size)
-            {
-                break;
-            }
+            tmp = 1;
+            for(i=0;line[i] != '\0';i++)
+             { 
+                 if(line[i] == ',') tmp++;
+             }
+            out = init_graph((int)tmp);
+            got_size = 1;
         }
-        else
+        tokens_count = 0;
+        while (tokens_count < out->size)
         {
-            tmp = strtol(line, NULL, 10);
+            token = mystrsep(&line, ",");
+            tmp = strtol(token, &next, 10);
             if (next == token)
-            {
-                printf("incorrect rows number\n");
+            { // no chars converted
+                printf("bad value for line_number=%d, tokens_count=%d\n", line_number, tokens_count);
                 exit(1);
             }
-            got_size = 1;
-            out = init_graph((int)tmp);
+            if (tmp)
+            {
+                out->data[line_number][tokens_count] = 1;
+            }
+            else
+            {
+                out->data[line_number][tokens_count] = 0;
+            }
+            tokens_count++;
+        }
+        line_number++;
+        if (line_number == out->size)
+        {
+            break;
         }
     }
     return out;

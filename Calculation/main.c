@@ -32,7 +32,6 @@ char *get_file_content(char *filename)
 
 void print_mapping(iso_result *res)
 {
-    printf("mapping: \n");
     for (int i = 0; i < res->size; i++)
     {
         printf("%d", res->g1_indices[i]);
@@ -56,9 +55,9 @@ void print_mapping(iso_result *res)
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3)
+    if (argc < 4)
     {
-        printf("provide 2 paths for graph dumps\n");
+        printf("provide 2 paths for graph dumps and 1 for out\n");
         exit(1);
     }
 
@@ -69,10 +68,14 @@ int main(int argc, char *argv[])
     graph *g2 = create_graph_from_dump(dump2);
     free(dump2);
 
-    // iso_result *res = get_exact_best_subgraph(g1, g2, 0);
-    iso_result *res = get_approx_subgraph(g1, g2);
+    iso_result *res;
+    if(argc == 5) {
+        res = get_exact_best_subgraph(g1, g2, 0);
+    } else {
+        res = get_approx_subgraph(g1, g2);
+    }
 
-    FILE *f = fopen("out", "w");
+    FILE *f = fopen(argv[3], "w");
     if (f == NULL)
     {
         return 1;

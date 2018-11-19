@@ -35,7 +35,6 @@ iso_result *get_exact_best_subgraph(graph *g1, graph *g2, int count_edges)
         { //even fully connected graph of this size would be too small to beat our best
             goto GraphFound;
         }
-        printf("handling subsets of size %d\n", i);
         for (j = 0; j < (*subsets_count_g1)[i]; j++)
         { // for each such subset in g1
             for (k = 0; k < (*subsets_count_g2)[i]; k++)
