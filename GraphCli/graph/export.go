@@ -11,12 +11,6 @@ func Export(g *Builder, out io.Writer) error {
 	if g == nil {
 		return errors.New("cannot export nil graph")
 	}
-
-	_, err := out.Write([]byte(fmt.Sprintf("%d\n", len(g.AdjMatrix))))
-	if err != nil {
-		return fmt.Errorf("could not write to output: %s", err.Error())
-	}
-
 	for i := range g.AdjMatrix {
 		row := g.AdjMatrix[i]
 		for j := range row {

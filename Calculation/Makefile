@@ -1,4 +1,3 @@
-CC=gcc
 OUT=commonSubgraph
 
 build:

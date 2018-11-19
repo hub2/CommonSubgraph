@@ -57,6 +57,26 @@ int dump_graph(FILE *file, graph *g)
     return 0;
 }
 
+char* mystrsep(char** stringp, const char* delim)
+{
+  char* start = *stringp;
+  char* p;
+
+  p = (start != NULL) ? strpbrk(start, delim) : NULL;
+
+  if (p == NULL)
+  {
+    *stringp = NULL;
+  }
+  else
+  {
+    *p = '\0';
+    *stringp = p + 1;
+  }
+
+  return start;
+}
+
 graph *create_graph_from_dump(char *dump)
 {
     char *token;
@@ -66,7 +86,7 @@ graph *create_graph_from_dump(char *dump)
     long tmp;
     graph *out;
 
-    while ((line = strsep(&dump, "\n")))
+    while ((line = mystrsep(&dump, "\n")))
     {
         next = line; //strsep needs it not to be null
         if (got_size)
@@ -74,7 +94,7 @@ graph *create_graph_from_dump(char *dump)
             tokens_count = 0;
             while (tokens_count < out->size)
             {
-                token = strsep(&line, ",");
+                token = mystrsep(&line, ",");
                 tmp = strtol(token, &next, 10);
                 if (next == token)
                 { // no chars converted
